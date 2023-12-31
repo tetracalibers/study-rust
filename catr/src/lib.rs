@@ -52,6 +52,9 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-  dbg!(config); // 設定を表示する
+  // 各ファイル名を表示する
+  for filename in config.files {
+    println!("{}", filename);
+  }
   Ok(())
 }
