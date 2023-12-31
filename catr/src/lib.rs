@@ -54,9 +54,12 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-  // 各ファイル名を表示する
   for filename in config.files {
-    println!("{}", filename);
+    // filenameを開く（変数を借りるために&を使っている）
+    match open(&filename) {
+      Err(err) => eprintln!("Failed to open {}: {}", filename, err),
+      Ok(_) => println!("Opened {}", filename),
+    }
   }
   Ok(())
 }
