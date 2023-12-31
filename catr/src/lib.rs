@@ -1,5 +1,7 @@
 use clap::{Arg, ArgAction, Command};
 use std::error::Error;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
 
 // deriveマクロは、構造体を出力できるようにDebug traitを追加する
 #[derive(Debug)]
@@ -57,4 +59,13 @@ pub fn run(config: Config) -> MyResult<()> {
     println!("{}", filename);
   }
   Ok(())
+}
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+  match filename {
+    // ファイル名がダッシュ（-）の場合、std::io::stdinから読み込む
+    "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+    // そうでない場合は、File::openを使用して指定されたファイルを開こうとするか、エラーを伝播する
+    _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+  }
 }
