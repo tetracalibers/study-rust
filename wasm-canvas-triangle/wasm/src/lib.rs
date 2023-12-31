@@ -16,8 +16,11 @@ pub fn main_js() -> Result<(), JsValue> {
 
   let context = canvas
     .get_context("2d")
+    // Result<Option<Object>>を返すので、2回unwrap
     .unwrap()
     .unwrap()
+    // dyn_intoで型をキャスト
+    // dyn_into from wasm_bindgen::JsCast;
     .dyn_into::<web_sys::CanvasRenderingContext2d>()
     .unwrap();
 
