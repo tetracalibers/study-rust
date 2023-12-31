@@ -21,7 +21,15 @@ pub fn main_js() -> Result<(), JsValue> {
     .dyn_into::<web_sys::CanvasRenderingContext2d>()
     .unwrap();
 
+  // container triangle
   draw_triangle(&context, [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)]);
+
+  // inner top triangle
+  draw_triangle(&context, [(300.0, 0.0), (150.0, 300.0), (450.0, 300.0)]);
+  // inner left bottom triangle
+  draw_triangle(&context, [(150.0, 300.0), (0.0, 600.0), (300.0, 600.0)]);
+  // inner right bottom triangle
+  draw_triangle(&context, [(450.0, 300.0), (300.0, 600.0), (600.0, 600.0)]);
 
   Ok(())
 }
