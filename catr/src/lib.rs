@@ -51,7 +51,7 @@ pub fn get_args() -> MyResult<Config> {
   })
 }
 
-pub fn run() -> MyResult<()> {
-  println!("Hello, world!");
+pub fn run(config: Config) -> MyResult<()> {
+  dbg!(config); // 設定を表示する
   Ok(())
 }
