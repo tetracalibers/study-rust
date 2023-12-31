@@ -58,7 +58,24 @@ pub fn run(config: Config) -> MyResult<()> {
     // filenameを開く（変数を借りるために&を使っている）
     match open(&filename) {
       Err(err) => eprintln!("Failed to open {}: {}", filename, err),
-      Ok(_) => println!("Opened {}", filename),
+      Ok(file) => {
+        let mut last_num = 0;
+        for (line_num, line_result) in file.lines().enumerate() {
+          let line = line_result?;
+          if config.number_lines {
+            println!("{:6}\t{}", line_num + 1, line);
+          } else if config.number_nonblank_lines {
+            if !line.is_empty() {
+              last_num += 1;
+              println!("{last_num:6}\t{line}");
+            } else {
+              println!();
+            }
+          } else {
+            println!("{line}");
+          }
+        }
+      }
     }
   }
   Ok(())
