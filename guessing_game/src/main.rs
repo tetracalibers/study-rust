@@ -1,6 +1,7 @@
 // @see https://doc.rust-jp.rs/book-ja/ch02-00-guessing-game-tutorial.html
 
 use rand::Rng;
+use std::cmp::Ordering;
 use std::io;
 
 fn main() {
@@ -16,5 +17,13 @@ fn main() {
 
   io::stdin().read_line(&mut guess).expect("Failed to read line"); // 行の読み込みに失敗しました
 
+  let guess: u32 = guess.trim().parse().expect("Please type a number!"); //数値を入力してください！
+
   println!("You guessed: {}", guess); // 次のように予想しました: {}
+
+  match guess.cmp(&secret_number) {
+    Ordering::Less => println!("Too small!"), //小さすぎ！
+    Ordering::Greater => println!("Too big!"), //大きすぎ！
+    Ordering::Equal => println!("You win!"),  //やったね！
+  }
 }
