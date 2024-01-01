@@ -21,17 +21,41 @@ pub fn main_js() -> Result<(), JsValue> {
     .dyn_into::<web_sys::CanvasRenderingContext2d>()
     .unwrap();
 
-  // container triangle
-  draw_triangle(&context, [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)]);
-
-  // inner top triangle
-  draw_triangle(&context, [(300.0, 0.0), (150.0, 300.0), (450.0, 300.0)]);
-  // inner left bottom triangle
-  draw_triangle(&context, [(150.0, 300.0), (0.0, 600.0), (300.0, 600.0)]);
-  // inner right bottom triangle
-  draw_triangle(&context, [(450.0, 300.0), (300.0, 600.0), (600.0, 600.0)]);
+  sierpinski(&context, [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)], 2);
 
   Ok(())
+}
+
+fn sierpinski(
+  context: &web_sys::CanvasRenderingContext2d,
+  points: [(f64, f64); 3],
+  depth: u8,
+) {
+  // container triangle
+  draw_triangle(&context, points);
+
+  let depth = depth - 1;
+
+  if depth > 0 {
+    // inner top triangle
+    sierpinski(
+      &context,
+      [(300.0, 0.0), (150.0, 300.0), (450.0, 300.0)],
+      depth,
+    );
+    // inner left bottom triangle
+    sierpinski(
+      &context,
+      [(150.0, 300.0), (0.0, 600.0), (300.0, 600.0)],
+      depth,
+    );
+    // inner right bottom triangle
+    sierpinski(
+      &context,
+      [(450.0, 300.0), (300.0, 600.0), (600.0, 600.0)],
+      depth,
+    );
+  }
 }
 
 fn draw_triangle(
