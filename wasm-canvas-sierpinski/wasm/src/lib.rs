@@ -34,28 +34,26 @@ fn sierpinski(
   // container triangle
   draw_triangle(&context, points);
 
+  let [top, left, right] = points;
+
   let depth = depth - 1;
 
   if depth > 0 {
+    let left_middle = midpoint(top, left);
+    let right_middle = midpoint(top, right);
+    let bottom_middle = midpoint(left, right);
+
     // inner top triangle
-    sierpinski(
-      &context,
-      [(300.0, 0.0), (150.0, 300.0), (450.0, 300.0)],
-      depth,
-    );
+    sierpinski(&context, [top, left_middle, right_middle], depth);
     // inner left bottom triangle
-    sierpinski(
-      &context,
-      [(150.0, 300.0), (0.0, 600.0), (300.0, 600.0)],
-      depth,
-    );
+    sierpinski(&context, [left_middle, left, bottom_middle], depth);
     // inner right bottom triangle
-    sierpinski(
-      &context,
-      [(450.0, 300.0), (300.0, 600.0), (600.0, 600.0)],
-      depth,
-    );
+    sierpinski(&context, [right_middle, bottom_middle, right], depth);
   }
+}
+
+fn midpoint(point_1: (f64, f64), point_2: (f64, f64)) -> (f64, f64) {
+  ((point_1.0 + point_2.0) / 2.0, (point_1.1 + point_2.1) / 2.0)
 }
 
 fn draw_triangle(
