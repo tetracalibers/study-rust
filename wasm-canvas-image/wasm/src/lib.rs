@@ -1,3 +1,4 @@
+use std::{rc::Rc, sync::Mutex};
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
@@ -22,19 +23,37 @@ pub fn main_js() -> Result<(), JsValue> {
     .unwrap();
 
   wasm_bindgen_futures::spawn_local(async move {
-    let (success_tx, success_rx) = futures::channel::oneshot::channel::<()>();
+    // チャネルを作る
+    // チャネルにResultを送るようにしたことで、後から成功と失敗を見分けることができる
+    // 成功時にはunitを、失敗時にはJSからのエラーコード（JsValue）を受け取るようにする
+    // JsValueはJSから直接渡される値すべてを表す型
+    let (success_tx, success_rx) = futures::channel::oneshot::channel::<Result<(), JsValue>>();
+
+    let success_tx = Rc::new(Mutex::new(Some(success_tx)));
+    let error_tx = Rc::clone(&success_tx);
+
     let image = web_sys::HtmlImageElement::new().unwrap();
 
     // Closure は wasm-bindgen が提供する構造体で、RustのクロージャをJavaScriptに渡すためのもの
     // onloadハンドラは一度しか呼ばれないので、Closure::onceを使う
-    let callback = Closure::once(|| {
-      success_tx.send(());
+    let callback = Closure::once(move || {
+      if let Some(success_tx) = success_tx.lock().ok().and_then(|mut opt| opt.take()) {
+        success_tx.send(Ok(()));
+      }
+    });
+
+    let error_callback = Closure::once(move |err| {
+      if let Some(error_tx) = error_tx.lock().ok().and_then(|mut opt| opt.take()) {
+        error_tx.send(Err(err));
+      }
     });
 
     // as_ref() は 生のJsValue を返す
     // unchecked_ref() で &Functionオブジェクト に変換する
     // 引数はJSではnullの可能性があるため、Someでラップする
     image.set_onload(Some(callback.as_ref().unchecked_ref()));
+    image.set_onerror(Some(error_callback.as_ref().unchecked_ref()));
+
     image.set_src("/Idle/image_3.png");
 
     success_rx.await;
