@@ -1,3 +1,4 @@
+use rand::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -21,7 +22,12 @@ pub fn main_js() -> Result<(), JsValue> {
     .dyn_into::<web_sys::CanvasRenderingContext2d>()
     .unwrap();
 
-  sierpinski(&context, [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)], 5);
+  sierpinski(
+    &context,
+    [(300.0, 0.0), (0.0, 600.0), (600.0, 600.0)],
+    (210, 224, 251),
+    8,
+  );
 
   Ok(())
 }
@@ -29,26 +35,50 @@ pub fn main_js() -> Result<(), JsValue> {
 fn sierpinski(
   context: &web_sys::CanvasRenderingContext2d,
   points: [(f64, f64); 3],
+  color: (u8, u8, u8),
   depth: u8,
 ) {
   // container triangle
-  draw_triangle(&context, points);
+  draw_triangle(&context, points, color);
 
   let [top, left, right] = points;
 
   let depth = depth - 1;
 
   if depth > 0 {
+    let mut rng = thread_rng();
+
+    let next_color = (
+      rng.gen_range(0..255),
+      rng.gen_range(0..255),
+      rng.gen_range(0..255),
+    );
+
     let left_middle = midpoint(top, left);
     let right_middle = midpoint(top, right);
     let bottom_middle = midpoint(left, right);
 
     // inner top triangle
-    sierpinski(&context, [top, left_middle, right_middle], depth);
+    sierpinski(
+      &context,
+      [top, left_middle, right_middle],
+      next_color,
+      depth,
+    );
     // inner left bottom triangle
-    sierpinski(&context, [left_middle, left, bottom_middle], depth);
+    sierpinski(
+      &context,
+      [left_middle, left, bottom_middle],
+      next_color,
+      depth,
+    );
     // inner right bottom triangle
-    sierpinski(&context, [right_middle, bottom_middle, right], depth);
+    sierpinski(
+      &context,
+      [right_middle, bottom_middle, right],
+      next_color,
+      depth,
+    );
   }
 }
 
@@ -59,7 +89,11 @@ fn midpoint(point_1: (f64, f64), point_2: (f64, f64)) -> (f64, f64) {
 fn draw_triangle(
   context: &web_sys::CanvasRenderingContext2d,
   points: [(f64, f64); 3],
+  color: (u8, u8, u8),
 ) {
+  let color_str = format!("rgb({}, {}, {})", color.0, color.1, color.2);
+  context.set_fill_style(&wasm_bindgen::JsValue::from_str(&color_str));
+
   let [top, left, right] = points;
   context.move_to(top.0, top.1);
   context.begin_path();
@@ -68,4 +102,5 @@ fn draw_triangle(
   context.line_to(top.0, top.1);
   context.close_path();
   context.stroke();
+  context.fill();
 }
