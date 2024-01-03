@@ -55,7 +55,20 @@ pub fn run(config: Config) -> MyResult<()> {
   for filename in config.files {
     match open(&filename) {
       Err(err) => eprintln!("{}: {}", filename, err),
-      Ok(_) => println!("Opened {}", filename),
+      Ok(mut file) => {
+        // 行末を保持しながら行ごとに読み込む
+        let mut line = String::new();
+        for _ in 0..config.lines {
+          let bytes = file.read_line(&mut line)?;
+          // ファイルハンドルは最後に達するとゼロバイトを返すので、ループから抜け出す
+          if bytes == 0 {
+            break;
+          }
+          print!("{}", line);
+          // 行バッファを空にする
+          line.clear();
+        }
+      }
     }
   }
   Ok(())
