@@ -112,39 +112,9 @@ pub fn run(config: Config) -> MyResult<()> {
   Ok(())
 }
 
-fn parse_positive_int(val: &str) -> MyResult<usize> {
-  match val.parse() {
-    Ok(n) if n > 0 => Ok(n),
-    _ => Err(From::from(val)),
-  }
-}
-
 fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
   match filename {
     "-" => Ok(Box::new(BufReader::new(io::stdin()))),
     _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_parse_positive_int() {
-    // 3 is an OK integer
-    let res = parse_positive_int("3");
-    assert!(res.is_ok());
-    assert_eq!(res.unwrap(), 3);
-
-    // Any string is an error
-    let res = parse_positive_int("foo");
-    assert!(res.is_err());
-    assert_eq!(res.unwrap_err().to_string(), "foo".to_string());
-
-    // A zero is an error
-    let res = parse_positive_int("0");
-    assert!(res.is_err());
-    assert_eq!(res.unwrap_err().to_string(), "0".to_string());
   }
 }
