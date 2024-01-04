@@ -56,17 +56,42 @@ pub fn run(config: Config) -> MyResult<()> {
     match open(&filename) {
       Err(err) => eprintln!("{}: {}", filename, err),
       Ok(mut file) => {
-        // 行末を保持しながら行ごとに読み込む
-        let mut line = String::new();
-        for _ in 0..config.lines {
-          let bytes = file.read_line(&mut line)?;
-          // ファイルハンドルは最後に達するとゼロバイトを返すので、ループから抜け出す
-          if bytes == 0 {
-            break;
+        if let Some(num_bytes) = config.bytes {
+          //
+          // バイト読み取り
+          //
+
+          // ファイルから読み込んだバイトを保持するために、
+          // ゼロで満たされた固定長num_bytesのミュータブル・バッファを作成
+          let mut buffer = vec![0; num_bytes as usize];
+
+          // ファイルハンドルから希望するバイト数をバッファに読み込む
+          // bytes_readの値には、実際に読み込まれたバイト数が含まれる
+          let bytes_read = file.read(&mut buffer)?;
+
+          // 選択したバイトを文字列に変換する（有効なUTF-8でない場合もある）
+          // String::from_utf8_lossyは無効なUTF-8シーケンスを未知の文字または置換文字に変換する
+          // 実際に読み込まれたバイトのみを選択する範囲操作を行っている
+          print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+        } else {
+          //
+          // 行末を保持しながら行ごとに読み込む
+          //
+
+          let mut line = String::new();
+          for _ in 0..config.lines {
+            let bytes = file.read_line(&mut line)?;
+
+            // ファイルハンドルは最後に達するとゼロバイトを返すので、ループから抜け出す
+            if bytes == 0 {
+              break;
+            }
+
+            print!("{}", line);
+
+            // 行バッファを空にする
+            line.clear();
           }
-          print!("{}", line);
-          // 行バッファを空にする
-          line.clear();
         }
       }
     }
