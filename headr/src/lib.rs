@@ -52,10 +52,23 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-  for filename in config.files {
+  let num_files = config.files.len();
+
+  for (file_num, filename) in config.files.iter().enumerate() {
     match open(&filename) {
       Err(err) => eprintln!("{}: {}", filename, err),
       Ok(mut file) => {
+        //
+        // 複数ファイル間のセパレーター
+        //
+        if num_files > 1 {
+          println!(
+            "{}==> {} <==",
+            if file_num > 0 { "\n" } else { "" },
+            &filename
+          );
+        }
+
         if let Some(num_bytes) = config.bytes {
           //
           // バイト読み取り
