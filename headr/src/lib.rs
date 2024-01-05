@@ -87,24 +87,7 @@ pub fn run(config: Config) -> MyResult<()> {
           // 実際に読み込まれたバイトのみを選択する範囲操作を行っている
           print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
         } else {
-          //
-          // 行末を保持しながら行ごとに読み込む
-          //
-
-          let mut line = String::new();
-          for _ in 0..config.lines {
-            let bytes = file.read_line(&mut line)?;
-
-            // ファイルハンドルは最後に達するとゼロバイトを返すので、ループから抜け出す
-            if bytes == 0 {
-              break;
-            }
-
-            print!("{}", line);
-
-            // 行バッファを空にする
-            line.clear();
-          }
+          read_and_print_lines(file, config.lines)?;
         }
       }
     }
@@ -117,4 +100,26 @@ fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
     "-" => Ok(Box::new(BufReader::new(io::stdin()))),
     _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
   }
+}
+
+// 行末を保持しながら行ごとに読み込んで表示
+fn read_and_print_lines(
+  mut file: impl BufRead,
+  line_count: u64,
+) -> MyResult<()> {
+  let mut line = String::new();
+  for _ in 0..line_count {
+    let bytes = file.read_line(&mut line)?;
+
+    // ファイルハンドルは最後に達するとゼロバイトを返すので、ループから抜け出す
+    if bytes == 0 {
+      break;
+    }
+
+    print!("{}", line);
+
+    // 行バッファを空にする
+    line.clear();
+  }
+  Ok(())
 }
